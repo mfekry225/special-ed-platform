@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-cairo: "Cairo", "Tahoma", sans-serif;
+  --font-tajawal: "Tajawal", "Tahoma", sans-serif;
+  --font-inter: "Inter", system-ui, sans-serif;
+}
+
+html {
+  direction: rtl;
+}
+
+body {
+  @apply bg-ink-50 text-ink-900 font-body antialiased;
+  /* دعم منطقة الأمان في أجهزة آيفون/آيباد ذات الحواف المنحنية أو الـ Notch */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.dark body {
+  @apply bg-dark-bg text-ink-50;
+}
+
+/* تكبير أهداف اللمس لتناسب الشاشات اللمسية (لا تقل عن 44px حسب معايير iOS) */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* تقليل الحركة لمن يفضل ذلك (مهم لبعض الأطفال ذوي فرط الحساسية الحسية) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* حلقة مساحة التمرير المخصصة */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-rifq-200 rounded-full;
+}
+.dark ::-webkit-scrollbar-thumb {
+  @apply bg-dark-border;
+}
+
+/* وضوح تركيز لوحة المفاتيح لإمكانية الوصول */
+:focus-visible {
+  outline: 2px solid theme(colors.rifq.500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
