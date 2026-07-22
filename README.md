@@ -1,1 +1,129 @@
-# special-ed-platform
+# منصة "رِفق" — منصة التربية الخاصة وتنمية مهارات التواصل
+
+مشروع Next.js 14 (App Router) + TypeScript + Tailwind CSS، مُعد خصيصاً بواجهة عربية RTL،
+تصميم Mobile-First يعمل بسلاسة على الآيباد والهاتف، وقابل للتثبيت كتطبيق PWA.
+
+## 1) هيكل المشروع
+
+```
+special-ed-platform/
+├── src/
+│   ├── app/
+│   │   ├── layout.tsx              ← التخطيط الجذري (خطوط عربية + RTL + PWA)
+│   │   ├── globals.css             ← الأنماط العامة، الوضع الليلي، مناطق الأمان لـ iOS
+│   │   ├── page.tsx                ← إعادة توجيه لصفحة /dashboard
+│   │   ├── (app)/                  ← مجموعة مسارات المعلم (بها القائمة الجانبية + الشريط السفلي)
+│   │   │   ├── layout.tsx
+│   │   │   ├── dashboard/page.tsx          ← لوحة تحكم المعلم
+│   │   │   ├── children/page.tsx           ← قائمة/إضافة الأطفال
+│   │   │   ├── children/[id]/page.tsx      ← الملف الشخصي للطفل (تبويبات)
+│   │   │   ├── iep/[childId]/page.tsx      ← منشئ الخطة التربوية الفردية
+│   │   │   ├── session/[childId]/page.tsx  ← تسجيل الجلسة اليومية ⭐
+│   │   │   ├── lessons/page.tsx            ← بنك الدروس والأنشطة
+│   │   │   └── notifications/page.tsx      ← إشعارات المعلم
+│   │   └── portal/page.tsx         ← بوابة ولي الأمر (بدون قائمة المعلم)
+│   ├── components/
+│   │   ├── ui/                     ← Button, Card, Badge (بدائل خفيفة عن shadcn/ui)
+│   │   ├── layout/                 ← Sidebar (سطح المكتب) + BottomNav (الهاتف)
+│   │   ├── dashboard/               ← StatCard, ChildCard, WeeklyProgressChart, أداة التقييم
+│   │   ├── session/                 ← GoalTracker, ProgressRing (العنصر البصري المميز)
+│   │   └── iep/                     ← GoalBuilder
+│   └── lib/
+│       ├── supabase/client.ts      ← عميل Supabase لجهة المتصفح
+│       ├── supabase/server.ts      ← عميل Supabase لجهة الخادم
+│       ├── types.ts                ← كل أنواع البيانات (Child, IEPGoal, Session...)
+│       └── utils.ts
+├── supabase/
+│   ├── schema.sql                  ← قاعدة البيانات كاملة + سياسات RLS ⭐
+│   └── functions/notify-parent/    ← Edge Function لإرسال واتساب لولي الأمر
+├── public/manifest.json            ← ملف PWA
+├── tailwind.config.ts              ← نظام الألوان والخطوط المخصص
+└── next.config.js                  ← إعداد next-pwa
+```
+
+## 2) التثبيت والتشغيل المحلي
+
+نفّذ الأوامر التالية في الطرفية (Terminal) داخل مجلد المشروع:
+
+```bash
+# 1. تثبيت الحزم
+npm install
+
+# 2. إنشاء ملف البيئة المحلي من المثال المرفق
+cp .env.local.example .env.local
+# ثم افتح .env.local واملأ القيمتين من إعدادات مشروعك في Supabase:
+# NEXT_PUBLIC_SUPABASE_URL و NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+# 3. تشغيل خادم التطوير
+npm run dev
+```
+
+افتح المتصفح على `http://localhost:3000` — سيتم توجيهك تلقائياً إلى `/dashboard`.
+
+## 3) إعداد قاعدة البيانات (Supabase)
+
+1. أنشئ مشروعاً جديداً على [supabase.com](https://supabase.com) (مجاني للبدء).
+2. من القائمة الجانبية اختر **SQL Editor** ثم **New query**.
+3. افتح ملف `supabase/schema.sql` من هذا المشروع، انسخ محتواه بالكامل، الصقه، ثم اضغط **Run**.
+   سيُنشئ هذا تلقائياً كل الجداول (الأطفال، التقييمات، أهداف IEP، الجلسات، الدروس، الإشعارات)
+   مع سياسات الأمان (RLS) التي تضمن أن كل معلم يرى فقط أطفاله، وكل ولي أمر يرى فقط طفله.
+4. من **Project Settings > API** انسخ `Project URL` و `anon public key` وضعهما في `.env.local`.
+
+## 4) تفعيل إشعارات واتساب
+
+1. أنشئ حساب [WhatsApp Business Platform](https://developers.facebook.com/docs/whatsapp) واحصل على
+   `Access Token` و `Phone Number ID`.
+2. من طرفية Supabase CLI:
+   ```bash
+   supabase functions deploy notify-parent
+   supabase secrets set WHATSAPP_ACCESS_TOKEN=xxxx WHATSAPP_PHONE_NUMBER_ID=xxxx
+   ```
+3. عند ضغط المعلم على زر "حفظ ومشاركة مع ولي الأمر" في صفحة الجلسة، يتم استدعاء هذه الدالة تلقائياً
+   (انظر `handleSave` في `src/app/(app)/session/[childId]/page.tsx`) وترسل رسالة واتساب لولي الأمر
+   وتُسجّل إشعاراً داخل المنصة أيضاً.
+
+> بديل أسهل للبدء دون توثيق واتساب الرسمي: يمكن استبدال استدعاء واتساب مؤقتاً بخدمة مثل
+> [Twilio WhatsApp Sandbox](https://www.twilio.com/docs/whatsapp) للتجربة السريعة.
+
+## 5) تحويل المنصة إلى تطبيق (PWA) على الآيباد/الهاتف
+
+المشروع مُعد مسبقاً بحزمة `next-pwa` وملف `public/manifest.json` بالعربية واتجاه RTL.
+كل ما تحتاجه:
+
+1. ضع أيقونتين بحجم `192x192` و `512x512` (وأيقونة "maskable" بحجم 512) داخل `public/icons/`
+   بنفس الأسماء الموجودة في `manifest.json`.
+2. انشر المشروع (خطوة 6) على رابط HTTPS — شرط أساسي لعمل PWA.
+3. على الآيباد/الآيفون: افتح الرابط في Safari ← زر المشاركة ← **إضافة إلى الشاشة الرئيسية**.
+4. على أندرويد: سيظهر Chrome تلقائياً اقتراح "تثبيت التطبيق".
+
+## 6) النشر على Vercel
+
+```bash
+# ادفع المشروع إلى GitHub أولاً
+git init
+git add .
+git commit -m "إعداد منصة رِفق"
+git remote add origin <رابط-مستودعك-على-GitHub>
+git push -u origin main
+```
+
+ثم من [vercel.com](https://vercel.com):
+1. **New Project** ← استورد المستودع من GitHub.
+2. في خانة **Environment Variables** أضف نفس المتغيرات الموجودة في `.env.local`.
+3. اضغط **Deploy** — سيمنحك Vercel رابط HTTPS جاهز للاستخدام على أي جهاز فوراً.
+
+## 7) خطوات تطوير مقترحة بعد هذا الأساس
+
+- ربط تسجيل الدخول الفعلي (`Supabase Auth`) بدلاً من البيانات التجريبية الحالية في الصفحات.
+- توليد اقتراحات أهداف IEP تلقائياً بالذكاء الاصطناعي بناءً على نتيجة تقييم اللغة (يمكن استخدام
+  Claude API لهذا الغرض بسهولة).
+- إضافة رفع الملفات/الفيديوهات في بنك الدروس عبر `Supabase Storage`.
+- ترقية مكونات `src/components/ui` إلى `shadcn/ui` رسمياً عند الحاجة لمكونات أكثر تعقيداً
+  (قوائم منسدلة، نوافذ حوار، تقويم) عبر: `npx shadcn@latest init`.
+
+---
+
+**ملاحظة تصميمية:** اخترتُ عمداً حلقات التقدّم الدائرية (`ProgressRing`) بدلاً من الرسوم البيانية
+العمودية التقليدية كعنصر مميز للمنصة — فهي أهدأ بصرياً (مهم جداً لأطفال طيف التوحد ولمن يتابعهم)
+وأقرب لأسلوب "شارة الإنجاز" المحبب للأطفال وأولياء الأمور، مع نظام ألوان هادئ (أخضر مزرق + عنبري +
+سجعي) يقلل الحمل الحسي البصري مقارنة بالألوان الصاخبة الشائعة في لوحات التحكم العادية.
