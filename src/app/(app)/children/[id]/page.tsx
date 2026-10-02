@@ -4,16 +4,18 @@ import { useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { LanguageAssessmentTool } from "@/components/dashboard/LanguageAssessmentTool";
+import { ClinicalScreeningTool } from "@/components/dashboard/ClinicalScreeningTool";
 import { ProgressRing } from "@/components/session/ProgressRing";
 import { Button } from "@/components/ui/button";
 import { ClipboardEdit, ClipboardList } from "lucide-react";
 
-const tabs = ["نظرة_عامة", "تقييم_اللغة", "سجل_الجلسات"] as const;
+const tabs = ["نظرة_عامة", "تقييم_اللغة", "المقاييس_الإكلينيكية", "سجل_الجلسات"] as const;
 type Tab = (typeof tabs)[number];
 
 const tabLabels: Record<Tab, string> = {
   نظرة_عامة: "نظرة عامة",
-  تقييم_اللغة: "تقييم اللغة",
+  تقييم_اللغة: "تقييم سريع",
+  المقاييس_الإكلينيكية: "مقاييس مسحية",
   سجل_الجلسات: "سجل الجلسات",
 };
 
@@ -70,6 +72,8 @@ export default function ChildProfilePage({ params }: { params: { id: string } })
       )}
 
       {tab === "تقييم_اللغة" && <LanguageAssessmentTool />}
+
+      {tab === "المقاييس_الإكلينيكية" && <ClinicalScreeningTool childId={params.id} />}
 
       {tab === "سجل_الجلسات" && (
         <p className="text-center text-sm text-ink-400 py-8">ستظهر هنا قائمة الجلسات السابقة مرتبة زمنياً.</p>

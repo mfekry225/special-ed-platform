@@ -83,3 +83,66 @@ export interface ParentNotification {
   sent_at: string;
   read: boolean;
 }
+
+// ---------- أنواع مُستنسخة ومُكيَّفة من نموذج بيانات مشروع "أُفق" السابق ----------
+
+export interface ClinicalScreening {
+  id: string;
+  child_id: string;
+  scale_id: "language" | "autism" | "developmental_learning" | "stuttering";
+  answers: { question_id: number; score: number }[];
+  total_score: number;
+  interpretation_level: "low" | "moderate" | "high";
+  screened_by: string;
+  created_at: string;
+}
+
+export interface EnrollmentLead {
+  id: string;
+  teacher_id: string;
+  parent_name: string;
+  student_name: string;
+  student_age?: string;
+  subject_needed?: string;
+  phone: string;
+  preferred_time?: string;
+  notes?: string;
+  status: "جديد" | "تم_التواصل" | "تم_التسجيل" | "ملغي";
+  created_at: string;
+}
+
+export interface AbsenceExcuseRequest {
+  id: string;
+  child_id: string;
+  session_date: string;
+  reason: string;
+  suggested_alternative_date?: string;
+  status: "قيد_الانتظار" | "مقبول" | "مرفوض";
+  created_at: string;
+}
+
+export interface TimelineMilestone {
+  id: string;
+  child_id: string;
+  milestone_date: string;
+  title: string;
+  description?: string;
+  level_badge?: string;
+  type: "إنجاز" | "ترقية_مستوى" | "تقييم" | "محطة_فارقة";
+  created_at: string;
+}
+
+export interface TeacherPublicProfile {
+  teacher_id: string;
+  display_name: string;
+  title?: string;
+  tagline?: string;
+  bio?: string;
+  experience_years?: number;
+  location?: string;
+  phone?: string;
+  whatsapp?: string;
+  subjects: string[];
+  slug?: string;
+  updated_at: string;
+}
